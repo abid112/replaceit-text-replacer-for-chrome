@@ -20,7 +20,7 @@
         if (node.nodeType === Node.TEXT_NODE) {
             let text = node.textContent;
             let originalText = text;
-            
+
             // Apply all replacement pairs
             replacementPairs.forEach(pair => {
                 if (pair.find && pair.replace && pair.enabled !== false) {
@@ -29,7 +29,7 @@
                     text = text.replace(regex, pair.replace);
                 }
             });
-            
+
             // Only update if text changed
             if (text !== originalText) {
                 node.textContent = text;
@@ -66,9 +66,9 @@
         if (isProcessing || replacementPairs.length === 0) {
             return;
         }
-        
+
         isProcessing = true;
-        
+
         try {
             walkTextNodes(document.body);
         } catch (error) {
@@ -81,12 +81,12 @@
     // Observer for dynamic content changes
     const observer = new MutationObserver(function(mutations) {
         let shouldProcess = false;
-        
+
         mutations.forEach(function(mutation) {
             if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
                 // Check if any text nodes were added
                 for (let node of mutation.addedNodes) {
-                    if (node.nodeType === Node.TEXT_NODE || 
+                    if (node.nodeType === Node.TEXT_NODE ||
                         (node.nodeType === Node.ELEMENT_NODE && node.textContent)) {
                         shouldProcess = true;
                         break;
@@ -94,7 +94,7 @@
                 }
             }
         });
-        
+
         if (shouldProcess && replacementPairs.length > 0) {
             // Debounce the replacement to avoid excessive processing
             setTimeout(performReplacements, 100);

@@ -1,8 +1,6 @@
 // Popup JavaScript for ReplaceIt extension
 
 document.addEventListener('DOMContentLoaded', function() {
-    const statusDiv = document.getElementById('status');
-    const enableToggle = document.getElementById('enableToggle');
     const pairsCountDiv = document.getElementById('pairsCount');
     const quickFindInput = document.getElementById('quickFind');
     const quickReplaceInput = document.getElementById('quickReplace');
@@ -14,10 +12,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Load current settings
     function loadSettings() {
-        chrome.storage.sync.get(['replacementPairs', 'enableExtension'], function(result) {
+        chrome.storage.sync.get(['replacementPairs'], function(result) {
             replacementPairs = result.replacementPairs || [];
-            enableToggle.checked = result.enableExtension !== false;
-            
             updateUI();
         });
     }
@@ -26,21 +22,12 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateUI() {
         const count = replacementPairs.length;
         pairsCountDiv.textContent = `${count} replacement pair${count !== 1 ? 's' : ''} configured`;
-        
-        if (enableToggle.checked) {
-            statusDiv.textContent = count > 0 ? 'Active and replacing text' : 'Active but no pairs configured';
-            statusDiv.style.background = count > 0 ? 'rgba(72, 187, 120, 0.3)' : 'rgba(237, 137, 54, 0.3)';
-        } else {
-            statusDiv.textContent = 'Extension disabled';
-            statusDiv.style.background = 'rgba(245, 101, 101, 0.3)';
-        }
     }
     
     // Save settings
     function saveSettings() {
         chrome.storage.sync.set({
-            replacementPairs: replacementPairs,
-            enableExtension: enableToggle.checked
+            replacementPairs: replacementPairs
         });
     }
     
@@ -118,11 +105,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Event listeners
-    enableToggle.addEventListener('change', function() {
-        saveSettings();
-        updateUI();
-    });
-    
     addQuickPairBtn.addEventListener('click', addQuickPair);
     
     // Allow Enter key to add pair
@@ -138,11 +120,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Open options page
-    openOptionsBtn.addEventListener('click', function() {
+    // Open options page function
+    function openOptionsPage() {
         chrome.runtime.openOptionsPage();
         window.close();
-    });
+    }
+
+    // Open options page
+    openOptionsBtn.addEventListener('click', openOptionsPage);
     
     // Refresh current page
     refreshPageBtn.addEventListener('click', function() {

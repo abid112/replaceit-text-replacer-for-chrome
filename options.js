@@ -4,12 +4,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const pairsContainer = document.getElementById('pairsContainer');
     const emptyState = document.getElementById('emptyState');
     const addPairBtn = document.getElementById('addPair');
+    const refreshSettingsBtn = document.getElementById('refreshSettings');
     const saveSettingsBtn = document.getElementById('saveSettings');
     const clearAllBtn = document.getElementById('clearAll');
     const resetSettingsBtn = document.getElementById('resetSettings');
     const importBtn = document.getElementById('importBtn');
     const exportBtn = document.getElementById('exportBtn');
-    const enableExtensionCheckbox = document.getElementById('enableExtension');
     const caseSensitiveCheckbox = document.getElementById('caseSensitive');
     const statusDiv = document.getElementById('status');
     
@@ -27,15 +27,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Load settings from storage
     function loadSettings() {
-        chrome.storage.sync.get(['replacementPairs', 'enableExtension', 'caseSensitive'], function(result) {
+        chrome.storage.sync.get(['replacementPairs', 'caseSensitive'], function(result) {
             replacementPairs = result.replacementPairs || [];
-            enableExtensionCheckbox.checked = result.enableExtension !== false;
             caseSensitiveCheckbox.checked = result.caseSensitive || false;
 
             // Store original settings for comparison
             originalSettings = {
                 replacementPairs: JSON.parse(JSON.stringify(replacementPairs)),
-                enableExtension: enableExtensionCheckbox.checked,
                 caseSensitive: caseSensitiveCheckbox.checked
             };
 
@@ -48,7 +46,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function saveSettings() {
         const settings = {
             replacementPairs: replacementPairs,
-            enableExtension: enableExtensionCheckbox.checked,
             caseSensitive: caseSensitiveCheckbox.checked
         };
 
@@ -56,7 +53,6 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update original settings after successful save
             originalSettings = {
                 replacementPairs: JSON.parse(JSON.stringify(replacementPairs)),
-                enableExtension: enableExtensionCheckbox.checked,
                 caseSensitive: caseSensitiveCheckbox.checked
             };
 
@@ -73,11 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return true;
         }
 
-        // Check if checkboxes are different
-        if (enableExtensionCheckbox.checked !== originalSettings.enableExtension) {
-            return true;
-        }
-
+        // Check if checkbox is different
         if (caseSensitiveCheckbox.checked !== originalSettings.caseSensitive) {
             return true;
         }
@@ -103,6 +95,32 @@ document.addEventListener('DOMContentLoaded', function() {
     function markAsChanged() {
         hasUnsavedChanges = true;
         updateSaveButtonState();
+    }
+
+    // Refresh settings from storage
+    function refreshSettings() {
+        // Warn if there are unsaved changes
+        if (hasChanges()) {
+            if (!confirm('You have unsaved changes. Refreshing will discard them. Continue?')) {
+                return;
+            }
+        }
+
+        chrome.storage.sync.get(['replacementPairs', 'caseSensitive'], function(result) {
+            replacementPairs = result.replacementPairs || [];
+            caseSensitiveCheckbox.checked = result.caseSensitive || false;
+
+            // Update original settings after refresh
+            originalSettings = {
+                replacementPairs: JSON.parse(JSON.stringify(replacementPairs)),
+                caseSensitive: caseSensitiveCheckbox.checked
+            };
+
+            hasUnsavedChanges = false;
+            renderPairs();
+            updateSaveButtonState();
+            showStatus('Settings refreshed from storage!', 'success');
+        });
     }
     
     // Show status message
@@ -210,7 +228,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Event listeners
     addPairBtn.addEventListener('click', () => addPair());
-    
+
+    refreshSettingsBtn.addEventListener('click', refreshSettings);
+
     saveSettingsBtn.addEventListener('click', saveSettings);
     
     clearAllBtn.addEventListener('click', function() {
@@ -225,7 +245,6 @@ document.addEventListener('DOMContentLoaded', function() {
     resetSettingsBtn.addEventListener('click', function() {
         if (confirm('Are you sure you want to reset all settings to defaults?')) {
             replacementPairs = [];
-            enableExtensionCheckbox.checked = true;
             caseSensitiveCheckbox.checked = false;
             renderPairs();
             markAsChanged();
@@ -319,10 +338,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Add change detection to checkboxes
-    enableExtensionCheckbox.addEventListener('change', markAsChanged);
+    // Add change detection to checkbox
     caseSensitiveCheckbox.addEventListener('change', markAsChanged);
     
+    // Listen for storage changes from other parts of the extension (like popup)
+    chrome.storage.onChanged.addListener(function(changes, namespace) {
+        if (namespace === 'sync') {
+            // Only auto-refresh if there are no unsaved changes
+            if (!hasChanges()) {
+                console.log('Options page: Auto-refreshing due to storage changes');
+                refreshSettings();
+            } else {
+                // Show a notification that there are external changes
+                showStatus('Settings changed externally. Click Refresh to load latest changes.', 'success');
+            }
+        }
+    });
+
     // Warn user about unsaved changes
     window.addEventListener('beforeunload', function(e) {
         if (hasUnsavedChanges && hasChanges()) {

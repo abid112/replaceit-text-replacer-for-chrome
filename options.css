@@ -329,6 +329,12 @@ footer {
     font-weight: 500;
 }
 
+.footer-custom a {
+    text-decoration: underline;
+    text-decoration-color: #7364c1 !important;
+    font-weight: bold;
+}
+
 /* Modal Styles */
 .modal {
     display: none;
