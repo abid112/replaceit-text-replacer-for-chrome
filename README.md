@@ -7,7 +7,6 @@ A powerful Chrome extension that replaces any text string on webpages with your 
 - 🔄 Replace any text on any webpage
 - ⚙️ Easy-to-use settings page
 - 🚀 Quick add functionality via popup
-- 💾 Auto-save settings
 - 📥📤 Import/Export settings
 - 🎯 Support for multiple replacement pairs
 - ⚡ Real-time text replacement
@@ -17,7 +16,6 @@ A powerful Chrome extension that replaces any text string on webpages with your 
 ## Installation
 
 1. Download or clone this repository
-2. **Generate Icons (Optional):** Open `create_icons.html` in your browser to generate the custom logo icons
 3. Open Chrome and go to `chrome://extensions/`
 4. Enable "Developer mode" in the top right
 5. Click "Load unpacked" and select the extension folder
