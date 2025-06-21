@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReplaceIt - Settings</title>
+    <link rel="stylesheet" href="options.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="logo-container">
+                    <svg class="app-logo" width="48" height="48" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#5B21B6;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <rect width="128" height="128" rx="26" ry="26" fill="url(#logoGradient)"/>
+                        <!-- Upper arrow pointing right -->
+                        <rect x="24" y="38" width="64" height="15" fill="white"/>
+                        <polygon points="88,30 104,45 88,60" fill="white"/>
+                        <!-- Lower arrow pointing left -->
+                        <rect x="40" y="75" width="64" height="15" fill="white"/>
+                        <polygon points="40,68 24,83 40,98" fill="white"/>
+                    </svg>
+                </div>
+                <div class="header-text">
+                    <h1>ReplaceIt - Text Replacement Settings</h1>
+                    <p>Configure text replacements that will be applied to all webpages you visit.</p>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <section class="controls">
+                <button id="addPair" class="btn btn-primary">
+                    <span class="btn-icon">+</span> Add New Replacement
+                </button>
+                <button id="importBtn" class="btn btn-secondary">
+                    <span class="btn-icon">↑</span> Import
+                </button>
+                <button id="exportBtn" class="btn btn-secondary">
+                    <span class="btn-icon">↓</span> Export
+                </button>
+                <button id="clearAll" class="btn btn-danger">
+                    <span class="btn-icon">×</span> Clear All
+                </button>
+            </section>
+
+            <section class="replacement-pairs">
+                <div id="pairsContainer">
+                    <!-- Replacement pairs will be dynamically added here -->
+                </div>
+                
+                <div id="emptyState" class="empty-state">
+                    <p>No replacement pairs configured yet.</p>
+                    <p>Click "Add New Replacement" to get started!</p>
+                </div>
+            </section>
+
+            <section class="global-settings">
+                <h3>Global Settings</h3>
+                <div class="setting-item">
+                    <label>
+                        <input type="checkbox" id="enableExtension" checked>
+                        Enable text replacement on all websites
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <label>
+                        <input type="checkbox" id="caseSensitive">
+                        Case sensitive matching
+                    </label>
+                </div>
+            </section>
+
+            <section class="actions">
+                <button id="saveSettings" class="btn btn-success" disabled>
+                    <span class="btn-icon">✓</span> Saved
+                </button>
+                <button id="resetSettings" class="btn btn-warning">
+                    <span class="btn-icon">↻</span> Reset to Defaults
+                </button>
+            </section>
+
+            <div id="status" class="status"></div>
+        </main>
+
+        <footer>
+            <p>ReplaceIt Extension v1.0 - Replace text on any webpage</p>
+            <p class="footer-custom">Made by Abid, approved by his cats. © 2025 – Any complaints, talk to the cats</p>
+        </footer>
+    </div>
+
+    <!-- Import/Export Modal -->
+    <div id="importModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Import Replacement Pairs</h3>
+            <p>Paste your JSON data below:</p>
+            <textarea id="importData" placeholder='[{"find": "old text", "replace": "new text", "enabled": true}]'></textarea>
+            <div class="modal-actions">
+                <button id="confirmImport" class="btn btn-primary">Import</button>
+                <button id="cancelImport" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="options.js"></script>
+</body>
+</html>

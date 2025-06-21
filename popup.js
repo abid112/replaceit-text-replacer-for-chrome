@@ -1,0 +1,163 @@
+// Popup JavaScript for ReplaceIt extension
+
+document.addEventListener('DOMContentLoaded', function() {
+    const statusDiv = document.getElementById('status');
+    const enableToggle = document.getElementById('enableToggle');
+    const pairsCountDiv = document.getElementById('pairsCount');
+    const quickFindInput = document.getElementById('quickFind');
+    const quickReplaceInput = document.getElementById('quickReplace');
+    const addQuickPairBtn = document.getElementById('addQuickPair');
+    const openOptionsBtn = document.getElementById('openOptions');
+    const refreshPageBtn = document.getElementById('refreshPage');
+    
+    let replacementPairs = [];
+    
+    // Load current settings
+    function loadSettings() {
+        chrome.storage.sync.get(['replacementPairs', 'enableExtension'], function(result) {
+            replacementPairs = result.replacementPairs || [];
+            enableToggle.checked = result.enableExtension !== false;
+            
+            updateUI();
+        });
+    }
+    
+    // Update UI elements
+    function updateUI() {
+        const count = replacementPairs.length;
+        pairsCountDiv.textContent = `${count} replacement pair${count !== 1 ? 's' : ''} configured`;
+        
+        if (enableToggle.checked) {
+            statusDiv.textContent = count > 0 ? 'Active and replacing text' : 'Active but no pairs configured';
+            statusDiv.style.background = count > 0 ? 'rgba(72, 187, 120, 0.3)' : 'rgba(237, 137, 54, 0.3)';
+        } else {
+            statusDiv.textContent = 'Extension disabled';
+            statusDiv.style.background = 'rgba(245, 101, 101, 0.3)';
+        }
+    }
+    
+    // Save settings
+    function saveSettings() {
+        chrome.storage.sync.set({
+            replacementPairs: replacementPairs,
+            enableExtension: enableToggle.checked
+        });
+    }
+    
+    // Generate unique ID
+    function generateId() {
+        return 'pair_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+    
+    // Add quick pair
+    function addQuickPair() {
+        const findText = quickFindInput.value.trim();
+        const replaceText = quickReplaceInput.value.trim();
+        
+        if (!findText) {
+            showTempStatus('Please enter text to find', 'error');
+            return;
+        }
+        
+        // Check if pair already exists
+        const existingPair = replacementPairs.find(pair => 
+            pair.find.toLowerCase() === findText.toLowerCase()
+        );
+        
+        if (existingPair) {
+            showTempStatus('This replacement already exists', 'warning');
+            return;
+        }
+        
+        // Add new pair
+        const newPair = {
+            id: generateId(),
+            find: findText,
+            replace: replaceText,
+            enabled: true
+        };
+        
+        replacementPairs.push(newPair);
+        saveSettings();
+        
+        // Clear inputs
+        quickFindInput.value = '';
+        quickReplaceInput.value = '';
+        
+        // Update UI
+        updateUI();
+        showTempStatus('Pair added successfully!', 'success');
+        
+        // Focus back to find input
+        quickFindInput.focus();
+    }
+    
+    // Show temporary status message
+    function showTempStatus(message, type) {
+        const originalText = statusDiv.textContent;
+        const originalBg = statusDiv.style.background;
+        
+        statusDiv.textContent = message;
+        
+        switch(type) {
+            case 'success':
+                statusDiv.style.background = 'rgba(72, 187, 120, 0.4)';
+                break;
+            case 'error':
+                statusDiv.style.background = 'rgba(245, 101, 101, 0.4)';
+                break;
+            case 'warning':
+                statusDiv.style.background = 'rgba(237, 137, 54, 0.4)';
+                break;
+        }
+        
+        setTimeout(() => {
+            statusDiv.textContent = originalText;
+            statusDiv.style.background = originalBg;
+        }, 2000);
+    }
+    
+    // Event listeners
+    enableToggle.addEventListener('change', function() {
+        saveSettings();
+        updateUI();
+    });
+    
+    addQuickPairBtn.addEventListener('click', addQuickPair);
+    
+    // Allow Enter key to add pair
+    quickReplaceInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            addQuickPair();
+        }
+    });
+    
+    quickFindInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            quickReplaceInput.focus();
+        }
+    });
+    
+    // Open options page
+    openOptionsBtn.addEventListener('click', function() {
+        chrome.runtime.openOptionsPage();
+        window.close();
+    });
+    
+    // Refresh current page
+    refreshPageBtn.addEventListener('click', function() {
+        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+            chrome.tabs.reload(tabs[0].id);
+            showTempStatus('Page refreshed!', 'success');
+            setTimeout(() => window.close(), 1000);
+        });
+    });
+    
+    // Initialize
+    loadSettings();
+    
+    // Focus on find input when popup opens
+    setTimeout(() => {
+        quickFindInput.focus();
+    }, 100);
+});
